@@ -20,10 +20,9 @@ def get_local_text_file(path):
 		return data
 
 
-def draw_bounding_box(img, pt1, pt2, color, thickness):
-	cv2.rectangle(img, pt1, pt2, color, thickness)
-	plt.imshow(img)
-	plt.show()
+def draw_bounding_box(img, pt1, pt2):
+	img = cv2.rectangle(img, pt1, pt2, (0, 255, 0), 2)
+	return img
 
 
 def getImageWidthHeight(img):
@@ -50,10 +49,20 @@ def change_color_to_rgb(color):
 	return tuple(map(lambda x: x / 255.0, color))
 
 
-image = get_local_image('images\\1.jpg')
+def change_color_area(x1, y1, x2, y2, img, color):
+	img[y1:y2, x1:x2] = color
+	return img
+
+
+def change_color_except_area(x1, y1, x2, y2, img, color):
+	img[y1:y2, x1:x2] = color
+	return img
+
+
+origin_image = image = get_local_image('images\\1.jpg')
 text = get_local_text_file('labels\\1.txt')
 height, width = getImageWidthHeight(image)
-
+points = []
 for line in text.split('\n'):
 	if not line:
 		continue
@@ -65,4 +74,12 @@ for line in text.split('\n'):
 
 	x1, y1, x2, y2 = yolo_to_x_y(x_center, y_center, x_width, y_width, width,
 								 height)
-	draw_bounding_box(image, (x1, y1), (x2, y2), [0, 0, 255], 2)
+	points.append((x1, y1, x2, y2))
+
+for point in points:
+	x1, y1, x2, y2 = point[0], point[1], point[2], point[3]
+	image = draw_bounding_box(image, (x1, y1), (x2, y2))
+	change_color_area(x1, y1, x2, y2, image, change_color_to_rgb((255, 0, 0)))
+
+plt.imshow(image)
+plt.show()
